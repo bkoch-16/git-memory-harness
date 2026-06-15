@@ -1,11 +1,11 @@
 # git-memory-harness
 
-A Python package that gives AI coding agents (Claude Code, OpenCode) persistent, branch-scoped memory backed by Zep Cloud. Each git branch gets its own Zep session. Designed to allow switching between providers. Claude Code gets automatic memory injection via `UserPromptSubmit` hooks; OpenCode gets explicit recall/remember MCP tools. Turns are buffered on disk with a two-phase commit for crash safety.
+A Python package that gives AI coding agents (Claude Code, OpenCode) persistent, branch-scoped memory backed by mem0. Each git branch gets its own strictly isolated mem0 run — memories from one branch never surface on another. Claude Code gets automatic memory injection via `UserPromptSubmit` hooks; OpenCode gets explicit recall/remember MCP tools. Turns are buffered on disk with a two-phase commit for crash safety.
 
 ## How it works
 
 - **Branch-scoped sessions** — namespace is `repo-id/branch`, so memory is isolated per branch and never bleeds across contexts
-- **Disk buffer with crash safety** — turns accumulate locally and flush to Zep in batches of 5 via atomic write (`.tmp` + `os.replace`) and two-phase commit
+- **Disk buffer with crash safety** — turns accumulate locally and flush to mem0 in batches of 5 via atomic write (`.tmp` + `os.replace`) and two-phase commit
 - **Claude Code** — automatic via `UserPromptSubmit` hook: ingests transcript incrementally and injects relevant memories as an additional system prompt on every turn
 - **OpenCode** — explicit MCP tools (`recall_memories`, `remember_fact`) via a stdio server; `remember_fact` flushes immediately for durability
 
@@ -15,7 +15,7 @@ A Python package that gives AI coding agents (Claude Code, OpenCode) persistent,
 pip install -e .
 ```
 
-Run once to store your Zep API key and wire up integrations:
+Run once to store your mem0 API key and wire up integrations (or set `MEM0_API_KEY` in your environment to skip the keychain):
 
 ```sh
 git-memory-harness setup
