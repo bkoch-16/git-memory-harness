@@ -5,7 +5,7 @@ import click
 import keyring
 
 from git_memory_harness import client as _client_mod
-from git_memory_harness.memory import flush, ingest_transcript, recall
+from git_memory_harness.memory import _load_buffer, flush, ingest_transcript, recall
 from git_memory_harness.repo import get_repo_id, get_run_id, get_user_id
 
 
@@ -39,9 +39,9 @@ def setup() -> None:
 
     from pathlib import Path
     if Path("~/.claude").expanduser().exists():
-        from git_memory_harness.integrations.claude_code import install_hook
-        install_hook()
-        installed.append("Claude Code hook (~/.claude/settings.json)")
+        from git_memory_harness.integrations.claude_code import install_hooks
+        install_hooks()
+        installed.append("Claude Code hooks (~/.claude/settings.json)")
 
     from git_memory_harness.integrations.opencode import _find_opencode_config, install_mcp
     config_path = _find_opencode_config()
@@ -93,14 +93,25 @@ def hook() -> None:
 
     try:
         if "prompt" in payload and "transcript_path" in payload:
-            ingest_transcript(payload["transcript_path"])
-            flush()
-            memories = recall(payload["prompt"])
-            if memories:
-                out = {
-                    "continue": True,
-                    "hookSpecificOutput": {"additionalSystemPrompt": memories},
-                }
+            transcript_path = payload["transcript_path"]
+            buf = _load_buffer()
+            first_prompt = (
+                buf.get("transcript_path") != transcript_path
+                or buf.get("transcript_line_offset", 0) == 0
+            )
+            ingest_transcript(transcript_path)
+            if first_prompt:
+                memories = recall(payload["prompt"])
+                if memories:
+                    out = {
+                        "continue": True,
+                        "hookSpecificOutput": {
+                            "hookEventName": "UserPromptSubmit",
+                            "additionalContext": memories,
+                        },
+                    }
+                else:
+                    out = {"continue": True}
             else:
                 out = {"continue": True}
         else:
@@ -110,6 +121,17 @@ def hook() -> None:
         out = {"continue": True}
 
     print(json.dumps(out))
+
+
+@main.command("session-start")
+def session_start() -> None:
+    """Claude Code SessionStart hook - flush buffered turns to mem0."""
+    sys.stdin.read()
+    try:
+        flush()
+    except Exception as e:
+        print(f"[git-memory-harness] ERROR in session-start hook: {e}", file=sys.stderr)
+    print(json.dumps({"continue": True}))
 
 
 if __name__ == "__main__":

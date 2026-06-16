@@ -53,7 +53,6 @@ def _best_effort_write(run_id: str, turns: list) -> None:
             turns,
             user_id=get_user_id(),
             run_id=run_id,
-            infer=False,
         )
     except Exception as e:
         print(f"[git-memory-harness] ERROR writing old branch to mem0: {e}", file=sys.stderr)
@@ -66,7 +65,6 @@ def _flush_turns(run_id: str, turns: list) -> None:
             turns,
             user_id=get_user_id(),
             run_id=run_id,
-            infer=False,
         )
         success = True
     except Exception as e:
