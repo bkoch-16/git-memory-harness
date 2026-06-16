@@ -50,7 +50,8 @@ def _best_effort_write(run_id: str, turns: list) -> None:
     try:
         get_client().add(
             turns,
-            filters={"user_id": get_user_id(), "run_id": run_id},
+            user_id=get_user_id(),
+            run_id=run_id,
             infer=False,
         )
     except Exception as e:
@@ -62,7 +63,8 @@ def _flush_turns(run_id: str, turns: list) -> None:
     try:
         get_client().add(
             turns,
-            filters={"user_id": get_user_id(), "run_id": run_id},
+            user_id=get_user_id(),
+            run_id=run_id,
             infer=False,
         )
         success = True
@@ -115,10 +117,11 @@ def recall(query: str) -> str:
         _best_effort_write(old_run_id, old_turns)
 
     try:
-        results = get_client().search(
+        raw = get_client().search(
             query,
             filters={"user_id": get_user_id(), "run_id": run_id},
         )
+        results = raw.get("results", raw) if isinstance(raw, dict) else raw
         return _format_results(results)
     except Exception as e:
         print(f"[git-memory-harness] ERROR in recall: {e}", file=sys.stderr)
