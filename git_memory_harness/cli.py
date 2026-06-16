@@ -110,3 +110,7 @@ def hook() -> None:
         out = {"continue": True}
 
     print(json.dumps(out))
+
+
+if __name__ == "__main__":
+    main()
