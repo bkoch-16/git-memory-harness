@@ -94,6 +94,7 @@ def hook() -> None:
     try:
         if "prompt" in payload and "transcript_path" in payload:
             ingest_transcript(payload["transcript_path"])
+            flush()
             memories = recall(payload["prompt"])
             if memories:
                 out = {
