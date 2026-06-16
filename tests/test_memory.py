@@ -203,6 +203,25 @@ def test_ingest_skips_thinking_blocks(tmp_path):
     assert loaded["turns"][0]["content"] == "hello"
 
 
+def test_ingest_resets_offset_on_new_transcript_path(tmp_path):
+    # Seed buffer with a high offset from a previous transcript path
+    old_buf = _empty_buffer("test-repo/main")
+    old_buf["transcript_path"] = "/old/path/transcript.jsonl"
+    old_buf["transcript_line_offset"] = 999
+    _write_buffer(tmp_path, old_buf)
+
+    lines = [json.dumps({"type": "user", "message": {"content": "new session turn"}})]
+    new_transcript = tmp_path / "new_transcript.jsonl"
+    new_transcript.write_text("\n".join(lines) + "\n")
+
+    ingest_transcript(str(new_transcript))
+
+    loaded = _load_buffer()
+    assert loaded["transcript_path"] == str(new_transcript)
+    assert loaded["transcript_line_offset"] == 1
+    assert any(t["content"] == "new session turn" for t in loaded["turns"])
+
+
 def test_ingest_survives_malformed_line(tmp_path):
     lines = [
         "not valid json{{{",

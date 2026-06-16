@@ -22,6 +22,7 @@ def _lock_file() -> Path:
 def _empty_buffer(run_id: str) -> dict:
     return {
         "run_id": run_id,
+        "transcript_path": "",
         "transcript_line_offset": 0,
         "turns": [],
         "pending_turns": [],
@@ -167,7 +168,10 @@ def flush() -> None:
 def ingest_transcript(transcript_path: str) -> None:
     with FileLock(_lock_file()):
         buf = _load_buffer()
-        offset = buf["transcript_line_offset"]
+        if buf.get("transcript_path") != transcript_path:
+            offset = 0
+        else:
+            offset = buf["transcript_line_offset"]
 
     try:
         with open(transcript_path) as f:
@@ -202,6 +206,7 @@ def ingest_transcript(transcript_path: str) -> None:
     with FileLock(_lock_file()):
         buf = _load_buffer()
         buf, old_run_id_ingest, old_turns_ingest = _handle_run_switch(buf, get_run_id())
+        buf["transcript_path"] = transcript_path
         buf["transcript_line_offset"] = len(lines)
         for role, content in new_turns:
             _append_turn(buf, role, content)
