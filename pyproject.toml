@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "git-memory-harness"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+    "mem0ai",
+    "keyring",
+    "click",
+    "filelock",
+    "mcp",
+]
+
+[project.scripts]
+git-memory-harness = "git_memory_harness.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["git_memory_harness*"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
