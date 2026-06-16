@@ -50,5 +50,10 @@ async def call_tool(name: str, arguments: dict) -> list[dict]:
     return await _dispatch(name, arguments)
 
 
+async def _main() -> None:
+    async with stdio_server() as (read_stream, write_stream):
+        await app.run(read_stream, write_stream, app.create_initialization_options())
+
+
 if __name__ == "__main__":
-    asyncio.run(stdio_server(app))
+    asyncio.run(_main())

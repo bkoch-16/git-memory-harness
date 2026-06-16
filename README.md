@@ -28,6 +28,10 @@ git-memory-harness status   # show namespace and buffer state
 git-memory-harness hook     # Claude Code hook entrypoint (called automatically)
 ```
 
+## Known Issues
+
+- **OpenCode MCP integration is non-functional** — the `recall_memories` and `remember_fact` tools are registered but OpenCode does not reliably invoke them. The MCP server starts correctly, but memory injection and recall do not work end-to-end in OpenCode sessions. Claude Code (hook-based) is the supported integration.
+
 ## File structure
 
 ```
