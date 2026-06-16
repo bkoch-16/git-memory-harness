@@ -113,9 +113,7 @@ def test_branch_switch_flushes_old_run(tmp_path, monkeypatch):
         remember("user", "new work")
 
     mock_client.add.assert_called_once()
-    call_kwargs = mock_client.add.call_args
-    filters = call_kwargs[1]["filters"] if call_kwargs[1] else call_kwargs.kwargs.get("filters", {})
-    assert filters.get("run_id") == "test-repo/old-branch"
+    assert mock_client.add.call_args.kwargs.get("run_id") == "test-repo/old-branch"
 
     loaded = _load_buffer()
     assert loaded["run_id"] == "test-repo/new-branch"
